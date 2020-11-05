@@ -32,6 +32,17 @@ export class CategoriasService {
         return this.categoriaModel.find().populate('jogadores').exec();
     }
 
+    async jogadorPertenceAlgumaCategoria(idJogador){
+        const jogadores = await this._jogadorService.consultarTodosJogadores();
+        const jogadoresFilters = jogadores.filter(jogador => jogador._id == idJogador);
+
+        if(jogadoresFilters.length == 0){
+            throw new BadRequestException(`jogador ${idJogador} invalido`)
+        }
+
+        return await this.categoriaModel.findOne().where('jogadores').in(idJogador).exec();
+    }
+
     async buscarCategoriaPorId(_id: string){
         let categoria = await this.categoriaModel.findOne({_id}).exec();
 
