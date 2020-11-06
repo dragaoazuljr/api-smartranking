@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CategoriasService } from 'src/categorias/categorias.service';
 import { JogadoresService } from 'src/jogadores/jogadores.service';
+import { Partida } from 'src/partidas/interfaces/partidas.interface';
 import { AtualizarDesafioDto } from './dtos/atualizar-desafio.dto';
 import { CriarDesafioDto } from './dtos/criar-desafio.dto';
 import { Desafio, DesafioStatus } from './interfaces/desafio.interface';
@@ -31,8 +32,7 @@ export class DesafiosService {
         }
 
         async criarDesafio(criarDesafioDto: CriarDesafioDto) {
-            
-            const jogadores = await this._jogadorService.consultarTodosJogadores();
+        const jogadores = await this._jogadorService.consultarTodosJogadores();
         criarDesafioDto.jogadores.map(jogadoreDto => {
             if(!jogadores.find(jogador => jogadoreDto._id == jogador._id)){
                 throw new BadRequestException(`jogador ${jogadoreDto._id} nao existe`)
@@ -63,20 +63,29 @@ export class DesafiosService {
     }
 
     async buscarTodosDesafios(): Promise<Desafio[]>{
-        return this._desafioModel.find().exec();
+        return this._desafioModel.find()
+            .populate('jogadores')
+            .populate('solicitante')
+            .populate('partida')    
+            .exec();
     }
 
     async buscarDesafiosPorId(_id): Promise<Desafio>{
-        return this._desafioModel.findById(_id).exec();
+        return await this._desafioModel.findOne({_id})
+            .populate('jogadores')
+            .populate('solicitante')
+            .populate('partida')
+            .exec();
     } 
 
     async consultarDesafiosDeUmJogador(idJogador): Promise<Desafio[]>{
         return this._desafioModel.find().where('jogadores').in(idJogador);
     }
 
-    async atualizarStatusDesafio(_id: string, status: DesafioStatus){
+    async atualizarStatusDesafio(_id: string, status: DesafioStatus, partida: Partida){
         let desafio = await this._desafioModel.findById(_id).exec();
         desafio.status = status;
+        desafio.partida = partida._id;
         return this._desafioModel.findByIdAndUpdate(_id, {$set: desafio}).exec();
     }
 

@@ -29,7 +29,7 @@ export class PartidasService {
         const partida = new this._modelPartida(atribuirDesafioPartidaDto);
         partida.categoria = desafio.categoria;
         partida.jogadores = desafio.jogadores;
-        const atualizarDesafio = await this._desafioService.atualizarStatusDesafio(idDesafio, DesafioStatus.REALIZADO);
+        const atualizarDesafio = await this._desafioService.atualizarStatusDesafio(idDesafio, DesafioStatus.REALIZADO, partida);
         return partida.save()
     }
 }
